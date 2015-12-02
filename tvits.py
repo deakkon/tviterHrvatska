@@ -2,15 +2,15 @@ from tweepy import Stream
 from tweepy import OAuthHandler
 from tweepy.streaming import StreamListener
 import json
-from pprint import pprint
 from mysqlUtilities import connectMySQL
+from pprint import pprint
+import time
 
 #tags = ['izboriRH','izboriHR','izbori2015','izbori']
 tags = ['izboriRH']
 
-import sqlite3
-conn = sqlite3.connect('dummyFile.sqlite')
-c = conn.cursor()
+from mysqlUtilities import connectMySQL
+db = connectMySQL(db='crolections', port=3366)
 
 #consumer key, consumer secret, access token, access secret.
 ckey = "YaV9e065RrS7GDG7ZPOeCHl3c"
@@ -23,16 +23,70 @@ class listener(StreamListener):
 
     def on_data(self, data):
         all_data = json.loads(data)
-        pprint(all_data)
+        
         #=======================================================================
-        # for item in all_data:
+        # pprint(all_data)
         #=======================================================================
-        print all_data['user']
-        print all_data['user']['description']
-        print all_data["user"]['screen_name']
-        print all_data['text']
-        print all_data['entities']['hashtags'][0]['text']
-        print '-----------'
+
+        tagsUsed = u', '.join([item['text'] for item in all_data['entities']['hashtags']])
+        ts = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(all_data['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))
+        in_reply_to_user_id = 0 
+        
+        #=======================================================================
+        # if type(all_data['in_reply_to_user_id']) == None else in_reply_to_user_id = all_data['in_reply_to_user_id']
+        #=======================================================================
+        if all_data['in_reply_to_user_id'] is None:
+            in_reply_to_user_id = 0
+        else:
+            in_reply_to_user_id = all_data['in_reply_to_user_id']
+            
+        if all_data['in_reply_to_status_id'] is None:
+            in_reply_to_status_id = 0
+        else:
+            in_reply_to_status_id = all_data['in_reply_to_status_id']
+        
+        sqlQuery = '''
+        INSERT INTO crolections.izbori2015
+        (izbori2015_tweet_id,
+        izbori2015_user,
+        izbori2015_user_id,
+        izbori2015_text,
+        izbori2015_created_at,
+        izbori2015_geo,
+        izbori2015_hashtags,
+        izbori2015_in_reply_to_screen_name,
+        izbori2015_in_reply_to_status_id,
+        izbori2015_in_reply_to_user_id,
+        izbori2015_retweet_count,
+        izbori2015_retweeted)
+        VALUES
+        (%d,'%s',%d,'%s','%s','%s','%s','%s', %d, %d, %d, %s);
+        '''%(all_data['id'],
+             all_data['user']['screen_name'],
+             all_data['user']['id'], 
+             all_data['text'], 
+             ts,
+             all_data['geo'], 
+             tagsUsed,
+             all_data['in_reply_to_screen_name'], 
+             in_reply_to_status_id, 
+             in_reply_to_user_id, 
+             all_data['retweet_count'], 
+             all_data['retweeted'])
+        #=======================================================================
+        # print sqlQuery
+        #=======================================================================
+        db.executeQuery(sqlQuery)
+        db._connectMySQL__connection.commit()
+        
+        print all_data['id']
+        print all_data['user']['screen_name']
+        print all_data['text'] 
+        print tagsUsed
+        print all_data['created_at'], type(all_data['created_at'])
+        print all_data['in_reply_to_user_id'], type(all_data['in_reply_to_user_id'])
+        print all_data['in_reply_to_status_id'], type(all_data['in_reply_to_status_id'])
+        print '--------------'
         return True
 
     def on_error(self, status):

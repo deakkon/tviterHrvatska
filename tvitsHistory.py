@@ -24,48 +24,37 @@ query = '#izboriRH OR #izborirh OR #izbori2015 OR #izbori15'
 
 nrItem = 1
 for tvit in tweepy.Cursor(api.search, q=query).items():
-    print tvit.id
-    print tvit.text
-    print tvit.user.screen_name
-    print tvit.created_at
-    print tvit.in_reply_to_status_id
-    print tvit.coordinates
-    print tvit.in_reply_to_screen_name
-    print tvit.geo
-    print type(tvit)
-    print nrItem, '--------'
+    tagsUsed = u', '.join([item['text'] for item in tvit.entities['hashtags']])
+    
     sqlQuery = '''
     INSERT INTO crolections.izbori2015
-    (izbori2015TvitID,
-    izbori2015Autor,
-    izbori2015Text,
-    izbori2015TvitTime,
-    izbori2015Geo,
-    izbori2015Rted,
-    izbori2015Answer2)
+    (izbori2015_tweet_id,
+    izbori2015_user,
+    izbori2015_user_id,
+    izbori2015_text,
+    izbori2015_created_at,
+    izbori2015_geo,
+    izbori2015_hashtags,
+    izbori2015_in_reply_to_screen_name,
+    izbori2015_in_reply_to_status_id,
+    izbori2015_in_reply_to_user_id,
+    izbori2015_retweet_count,
+    izbori2015_retweeted)
     VALUES
-    (
-    '%s',
-    '%s',
-    '%s',
-    '%s',
-    '%s',
-    '%s',
-    '%s');
-    '''%(tvit.id,tvit.user.screen_name, tvit.text, tvit.created_at,tvit.geo, tvit.retweeted,tvit.in_reply_to_status_id)
+    ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');
+    '''%(tvit.id,
+         tvit.user.screen_name,
+         tvit.user.id, 
+         tvit.text, 
+         tvit.created_at,
+         tvit.geo, 
+         tagsUsed,
+         tvit.in_reply_to_screen_name, 
+         tvit.in_reply_to_status_id, 
+         tvit.in_reply_to_user_id, 
+         tvit.retweet_count, 
+         tvit.retweeted)
     print sqlQuery
     db.executeQuery(sqlQuery)
     db._connectMySQL__connection.commit()
     nrItem += 1
-
-
-#===============================================================================
-# ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__getstate__', 
-# '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', 
-# '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_api', '_json', 'author', 'contributors', 'coordinates', 
-# 'created_at', 'destroy', 'entities', 'favorite', 'favorite_count', 'favorited', 'geo', 'id', 'id_str', 
-# 'in_reply_to_screen_name', 'in_reply_to_status_id', 'in_reply_to_status_id_str', 'in_reply_to_user_id', 
-# 'in_reply_to_user_id_str', 'is_quote_status', 'lang', 'metadata', 'parse', 'parse_list', 'place', 
-# 'possibly_sensitive', 'retweet', 'retweet_count', 'retweeted', 'retweeted_status', 'retweets', 
-# 'source', 'source_url', 'text', 'truncated', 'user']
-#===============================================================================
