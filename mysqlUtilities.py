@@ -66,10 +66,10 @@ class connectMySQL():
             #return self.__results
         except MySQLdb.IntegrityError, e: 
             # handle a specific error condition
-            print 'Error has occured: ', e
+            print 'Error1 has occured: ', e
         except MySQLdb.Error, e:
             # handle a generic error condition
-            print 'Error has occured: ', e
+            print 'Error2 has occured: ', e
         except MySQLdb.Warning, e:
             # handle warnings, if the cursor you're using raises them
             print 'Warrning: ', e

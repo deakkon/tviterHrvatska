@@ -28,9 +28,10 @@ class listener(StreamListener):
         # pprint(all_data)
         #=======================================================================
 
-        tagsUsed = u', '.join([item['text'] for item in all_data['entities']['hashtags']])
+        tagsUsed = ', '.join([item['text'] for item in all_data['entities']['hashtags']])
         ts = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(all_data['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))
-        in_reply_to_user_id = 0 
+        URLs = ', '.join([item['url'] for item in all_data['entities']['urls']])
+        
         
         #=======================================================================
         # if type(all_data['in_reply_to_user_id']) == None else in_reply_to_user_id = all_data['in_reply_to_user_id']
@@ -58,9 +59,10 @@ class listener(StreamListener):
         izbori2015_in_reply_to_status_id,
         izbori2015_in_reply_to_user_id,
         izbori2015_retweet_count,
-        izbori2015_retweeted)
+        izbori2015_retweeted,
+        izbori2015_URLs)
         VALUES
-        (%d,'%s',%d,'%s','%s','%s','%s','%s', %d, %d, %d, %s);
+        (%d,'%s',%d,'%s','%s','%s','%s','%s', %d, %d, %d, %s,'%s');
         '''%(all_data['id'],
              all_data['user']['screen_name'],
              all_data['user']['id'], 
@@ -72,20 +74,27 @@ class listener(StreamListener):
              in_reply_to_status_id, 
              in_reply_to_user_id, 
              all_data['retweet_count'], 
-             all_data['retweeted'])
+             all_data['retweeted'],
+             URLs)
         #=======================================================================
         # print sqlQuery
         #=======================================================================
         db.executeQuery(sqlQuery)
         db._connectMySQL__connection.commit()
         
-        print all_data['id']
-        print all_data['user']['screen_name']
-        print all_data['text'] 
-        print tagsUsed
-        print all_data['created_at'], type(all_data['created_at'])
-        print all_data['in_reply_to_user_id'], type(all_data['in_reply_to_user_id'])
-        print all_data['in_reply_to_status_id'], type(all_data['in_reply_to_status_id'])
+        print 'ID\t', all_data['id']
+        print 'SN\t', all_data['user']['screen_name']
+        print 'UID\t', all_data['user']['id']
+        print 'TXT\t', all_data['text']
+        print 'Time\t', ts
+        print 'GEO\t', all_data['geo']
+        print 'TAG\t', tagsUsed
+        print 'Reply1\t', all_data['in_reply_to_screen_name']
+        print 'Reply2\t', in_reply_to_status_id
+        print 'Reply3\t', in_reply_to_user_id
+        print 'ReTweet\t', all_data['retweet_count']
+        print 'Retweeted\t', all_data['retweeted']
+        print 'URLs\t', URLs
         print '--------------'
         return True
 
